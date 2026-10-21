@@ -37,9 +37,7 @@ export default function LandDashboard() {
         year,
         receivedThisYear: yearTarget.receivedThisYear,
         annualMinimum: yearTarget.min,
-        balanceAtStartOfYear: yearSimulation.balanceAtStartOfYear,
         met: yearTarget.met,
-        inccAddedAtStartOfYear: yearSimulation.inccAddedAtStartOfYear,
         totalDueAtYearEnd: yearSimulation.pendingAmount,
       }
     }),

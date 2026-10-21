@@ -37,9 +37,7 @@ export interface LandYearProjection {
   year: number
   receivedThisYear: number
   annualMinimum: number
-  balanceAtStartOfYear: number
   met: boolean
-  inccAddedAtStartOfYear: number
   totalDueAtYearEnd: number
 }
 
@@ -54,8 +52,6 @@ export interface AnnualLateCharge {
 export interface LandSimulation {
   year: number
   asOfDate: string
-  inccAddedAtStartOfYear: number
-  balanceAtStartOfYear: number
   receivedUpToYear: number
   pendingAmount: number
   inccAccumulated: number
@@ -216,24 +212,17 @@ export function simulateLandYear(
   const receipts = allReceipts.filter((receipt) => receipt.year <= year && receipt.date <= asOfDate)
   let pendingD = LAND_TARGET_PER_LOT
   let pendingW = LAND_TARGET_PER_LOT
-  let inccAddedAtStartOfYear = 0
-  let balanceAtStartOfYear = LAND_TOTAL_TARGET
   const annualMinimumByYear = new Map<number, number>()
 
   for (let currentYear = FIRST_YEAR; currentYear <= year; currentYear += 1) {
     if (currentYear > FIRST_YEAR) {
       const priorYearFactor = getAnnualInccFactor(currentYear - 1, inccRates)
-      const balanceBeforeIncc = pendingD + pendingW
       pendingD *= priorYearFactor
       pendingW *= priorYearFactor
-      if (currentYear === year) {
-        inccAddedAtStartOfYear = pendingD + pendingW - balanceBeforeIncc
-      }
     }
 
     const totalAtStartOfYear = pendingD + pendingW
     annualMinimumByYear.set(currentYear, totalAtStartOfYear * 0.15)
-    if (currentYear === year) balanceAtStartOfYear = totalAtStartOfYear
 
     const paidD = receipts
       .filter((receipt) => receipt.type === 'D' && receipt.year === currentYear)
@@ -299,8 +288,6 @@ export function simulateLandYear(
   return {
     year,
     asOfDate,
-    inccAddedAtStartOfYear,
-    balanceAtStartOfYear,
     receivedUpToYear,
     pendingAmount,
     inccAccumulated,

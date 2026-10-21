@@ -10,7 +10,6 @@ interface LandYearlyProgressProps {
 }
 
 export default function LandYearlyProgress({ currentYear, yearProjections, lateCharges }: LandYearlyProgressProps) {
-  const visibleYears = yearProjections.filter((projection) => projection.year <= currentYear)
   return (
     <section className="rounded-2xl border border-slate-700/50 bg-slate-900/60 p-5 sm:p-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
@@ -22,12 +21,14 @@ export default function LandYearlyProgress({ currentYear, yearProjections, lateC
       </div>
 
       <div className="space-y-4">
-        {visibleYears.map((projection) => {
+        {yearProjections.map((projection) => {
           const isCurrent = currentYear === projection.year
           const missed = currentYear >= projection.year && !projection.met
           const met = projection.met
           const lateCharge = lateCharges.find((charge) => charge.year === projection.year)
-          const percentage = Math.min((projection.receivedThisYear / projection.annualMinimum) * 100, 100)
+          const percentage = projection.annualMinimum > 0
+            ? Math.min((projection.receivedThisYear / projection.annualMinimum) * 100, 100)
+            : 100
           const color = missed ? 'bg-rose-400' : met ? 'bg-emerald-400' : isCurrent ? 'bg-amber-300' : 'bg-slate-600'
           const status = met ? 'Meta atingida' : missed ? (isCurrent ? 'Não atingido no fechamento simulado' : 'Mínimo não atingido') : isCurrent ? 'Atingido no fechamento simulado' : 'Previsto'
 
@@ -46,14 +47,9 @@ export default function LandYearlyProgress({ currentYear, yearProjections, lateC
               <div className="h-2 overflow-hidden rounded-full bg-slate-800">
                 <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${percentage}%` }} />
               </div>
-              <div className="mt-1.5 flex flex-wrap justify-between gap-x-4 gap-y-1 text-[11px]">
-                <span className="text-slate-400">
-                  Saldo no início: {fmtBRL(Math.max(0, projection.balanceAtStartOfYear - projection.inccAddedAtStartOfYear))}
-                  {projection.inccAddedAtStartOfYear > 0.005 && <span className="text-violet-200"> + INCC {fmtBRL(projection.inccAddedAtStartOfYear)} = {fmtBRL(projection.balanceAtStartOfYear)}</span>}
-                </span>
-                <span className="font-medium text-slate-300">Saldo após recebimentos: {fmtBRL(projection.totalDueAtYearEnd)}</span>
+              <div className="mt-1.5 flex flex-wrap justify-end gap-x-4 gap-y-1 text-[11px]">
+                <span className="font-medium text-slate-300">Saldo devido: {fmtBRL(projection.totalDueAtYearEnd)}</span>
               </div>
-              <p className="mt-1 text-[11px] font-medium text-amber-200">Parcela mínima deste ano (15%): {fmtBRL(projection.annualMinimum)}</p>
               {lateCharge && (lateCharge.penalty > 0 || lateCharge.interest > 0) && (
                 <p className="mt-1.5 text-[11px] text-rose-200/80">
                   Falta anual de {fmtBRL(lateCharge.shortfallAtClose)} · multa {fmtBRL(lateCharge.penalty)} · juros acumulados {fmtBRL(lateCharge.interest)}
