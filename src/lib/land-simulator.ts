@@ -36,6 +36,8 @@ export interface YearTarget {
 export interface LandYearProjection {
   year: number
   receivedThisYear: number
+  annualMinimum: number
+  balanceAtStartOfYear: number
   met: boolean
   inccAddedAtStartOfYear: number
   totalDueAtYearEnd: number
@@ -53,6 +55,7 @@ export interface LandSimulation {
   year: number
   asOfDate: string
   inccAddedAtStartOfYear: number
+  balanceAtStartOfYear: number
   receivedUpToYear: number
   pendingAmount: number
   inccAccumulated: number
@@ -138,6 +141,8 @@ function simulateAnnualLateCharges(
   asOfDate: string
 ): AnnualLateCharge[] {
   const buckets: LateChargeBucket[] = []
+  let balanceD = LAND_TARGET_PER_LOT
+  let balanceW = LAND_TARGET_PER_LOT
 
   for (let year = FIRST_YEAR; year <= throughYear; year += 1) {
     const yearStart = `${year}-01-01`
@@ -146,6 +151,8 @@ function simulateAnnualLateCharges(
     // A prior-year shortfall is part of the unpaid balance carried into January.
     if (year > FIRST_YEAR) {
       const priorYearFactor = getAnnualInccFactor(year - 1, inccRates)
+      balanceD *= priorYearFactor
+      balanceW *= priorYearFactor
       for (const bucket of buckets) {
         bucket.latePrincipalRemaining *= priorYearFactor
       }
@@ -154,6 +161,12 @@ function simulateAnnualLateCharges(
     const yearReceipts = receipts
       .filter((receipt) => receipt.year === year && receipt.date <= yearEnd)
       .sort((a, b) => a.date.localeCompare(b.date))
+
+    const annualMinimum = (balanceD + balanceW) * 0.15
+    for (const receipt of yearReceipts) {
+      if (receipt.type === 'D') balanceD = Math.max(0, balanceD - receipt.amount)
+      else balanceW = Math.max(0, balanceW - receipt.amount)
+    }
 
     let interestCursor = yearStart
     for (const receipt of yearReceipts) {
@@ -166,7 +179,7 @@ function simulateAnnualLateCharges(
     // In 2030 the full balance is due on December 30, so the final-balance
     // default calculation replaces another annual-minimum shortfall bucket.
     if (year < LAST_YEAR && year < throughYear) {
-      const shortfallAtClose = Math.max(0, LAND_ANNUAL_MINIMUM - receiptsInYear(yearReceipts, year))
+      const shortfallAtClose = Math.max(0, annualMinimum - receiptsInYear(yearReceipts, year))
       if (shortfallAtClose > 0) {
         buckets.push({
           year,
@@ -204,6 +217,8 @@ export function simulateLandYear(
   let pendingD = LAND_TARGET_PER_LOT
   let pendingW = LAND_TARGET_PER_LOT
   let inccAddedAtStartOfYear = 0
+  let balanceAtStartOfYear = LAND_TOTAL_TARGET
+  const annualMinimumByYear = new Map<number, number>()
 
   for (let currentYear = FIRST_YEAR; currentYear <= year; currentYear += 1) {
     if (currentYear > FIRST_YEAR) {
@@ -215,6 +230,10 @@ export function simulateLandYear(
         inccAddedAtStartOfYear = pendingD + pendingW - balanceBeforeIncc
       }
     }
+
+    const totalAtStartOfYear = pendingD + pendingW
+    annualMinimumByYear.set(currentYear, totalAtStartOfYear * 0.15)
+    if (currentYear === year) balanceAtStartOfYear = totalAtStartOfYear
 
     const paidD = receipts
       .filter((receipt) => receipt.type === 'D' && receipt.year === currentYear)
@@ -271,9 +290,9 @@ export function simulateLandYear(
     return {
       year: targetYear,
       minPercent: 0.15,
-      min: LAND_ANNUAL_MINIMUM,
+      min: annualMinimumByYear.get(targetYear) ?? LAND_ANNUAL_MINIMUM,
       receivedThisYear,
-      met: receivedThisYear >= LAND_ANNUAL_MINIMUM,
+      met: receivedThisYear >= (annualMinimumByYear.get(targetYear) ?? LAND_ANNUAL_MINIMUM),
     }
   })
 
@@ -281,6 +300,7 @@ export function simulateLandYear(
     year,
     asOfDate,
     inccAddedAtStartOfYear,
+    balanceAtStartOfYear,
     receivedUpToYear,
     pendingAmount,
     inccAccumulated,

@@ -13,6 +13,7 @@ interface LandYearSimulatorProps {
 export default function LandYearSimulator({ simulatedYear, onYearChange, simulation }: LandYearSimulatorProps) {
   const totalPenalty = simulation.latePenalty + simulation.finalPenalty
   const annualChargeYears = simulation.annualLateCharges.filter((charge) => charge.shortfallAtClose > 0)
+  const selectedAnnualMinimum = simulation.yearTargets.find((target) => target.year === simulatedYear)?.min ?? LAND_ANNUAL_MINIMUM
 
   return (
     <section className="rounded-2xl border border-amber-400/20 bg-slate-900/70 p-5 sm:p-6" aria-label="Simulação por ano">
@@ -21,9 +22,9 @@ export default function LandYearSimulator({ simulatedYear, onYearChange, simulat
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-400">Simulação do contrato</p>
           <h2 className="mt-1 flex items-center gap-2 text-lg font-semibold text-white">
             <TrendingUp size={17} className="text-amber-300" />
-            Avance o ano para acompanhar INCC e mora
+            Avance o ano para acompanhar o saldo corrigido
           </h2>
-          <p className="mt-1 text-sm text-slate-400">Avance o ano para ver os pagamentos registrados e a mora dos anos anteriores.</p>
+          <p className="mt-1 text-sm text-slate-400">O INCC atualiza o saldo em janeiro; a parcela anual é 15% desse saldo.</p>
         </div>
         <div className="rounded-xl border border-amber-300/20 bg-amber-300/5 px-4 py-2 text-right">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-100/60">Data da simulação</p>
@@ -77,11 +78,11 @@ export default function LandYearSimulator({ simulatedYear, onYearChange, simulat
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
         <div className="rounded-xl border border-violet-400/15 bg-violet-400/5 p-3.5 text-xs leading-relaxed text-violet-100/80">
           <p className="font-semibold text-violet-100">INCC no saldo</p>
-          <p className="mt-1">A soma simples das taxas mensais de cada ano é aplicada em janeiro seguinte ao saldo que restou em cada lote, depois de descontados os pagamentos daquele lote.</p>
+          <p className="mt-1">A soma simples das taxas mensais do ano é aplicada em janeiro seguinte ao saldo que restou em cada lote.</p>
         </div>
         <div className="rounded-xl border border-rose-400/15 bg-rose-400/5 p-3.5 text-xs leading-relaxed text-rose-100/80">
           <p className="font-semibold text-rose-100">Falta da amortização anual</p>
-          <p className="mt-1">Se o total recebido no ano ficar abaixo de {fmtBRL(LAND_ANNUAL_MINIMUM)}, a multa de 2% sobre a falta só aparece no ano seguinte. Os juros de 1% ao mês, pro rata die, também começam então e seguem até a regularização. Recebimentos posteriores cobrem primeiro a falta anual mais antiga; a multa continua devida e os juros param sobre o valor regularizado.</p>
+          <p className="mt-1">Se o total recebido em {simulatedYear} ficar abaixo de {fmtBRL(selectedAnnualMinimum)}, a multa de 2% sobre a diferença só aparece no ano seguinte. Os juros de mora também começam então.</p>
         </div>
       </div>
 
