@@ -19,10 +19,12 @@ function formatReceiptDate(date: string): string {
 }
 
 export default function LandDashboard() {
-  const { landReceipts, inccRates, isLoaded, removeLandReceipt } = useApp()
+  const { landReceipts, inccRates, isLoaded, cloudEnabled, userEmail, authPending, authError, sendSignInLink, signOut, importLocalData, localDataCounts, dataError, removeLandReceipt } = useApp()
   const [showForm, setShowForm] = useState(false)
   const [showRates, setShowRates] = useState(false)
   const [simulatedYear, setSimulatedYear] = useState(currentContractYear)
+  const [email, setEmail] = useState('')
+  const [linkSent, setLinkSent] = useState(false)
 
   const simulation = useMemo(
     () => simulateLandYear(simulatedYear, landReceipts, inccRates),
@@ -53,6 +55,16 @@ export default function LandDashboard() {
     return <main className="mx-auto max-w-6xl px-4 py-8 text-sm text-slate-400">Carregando o painel…</main>
   }
 
+  if (cloudEnabled && !userEmail) {
+    return <main className="mx-auto flex min-h-screen max-w-lg items-center px-4 py-10"><form className="w-full space-y-4 rounded-2xl border border-slate-700/60 bg-slate-900/70 p-6" onSubmit={async (event) => { event.preventDefault(); await sendSignInLink(email); setLinkSent(true) }}>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] palette-gold">Terra · Terrenos D / W</p><h1 className="text-2xl font-semibold text-white">Acesse seus dados compartilhados</h1>
+      <p className="text-sm text-slate-400">Digite um dos e-mails autorizados. Enviaremos um link para entrar; os dados ficam sincronizados entre dispositivos.</p>
+      <input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="seu@email.com" className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-amber-300" />
+      <button disabled={authPending} className="w-full rounded-xl palette-bg-gold-soft px-4 py-3 font-semibold palette-cream disabled:opacity-50">{authPending ? 'Enviando…' : 'Enviar link de acesso'}</button>
+      {linkSent && !authError && <p className="text-sm text-emerald-300">Confira sua caixa de entrada para abrir o link de acesso.</p>}{authError && <p className="text-sm text-red-300">{authError}</p>}
+    </form></main>
+  }
+
   return (
     <main className="mx-auto max-w-6xl space-y-5 px-4 py-6 sm:px-6 sm:py-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
@@ -62,6 +74,7 @@ export default function LandDashboard() {
           <p className="mt-1 text-sm text-slate-400">Acompanhamento de recebimentos, saldo e correção anual</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {cloudEnabled && userEmail && <button onClick={() => void signOut()} className="rounded-xl border border-slate-700 px-3 py-2 text-xs text-slate-300">{userEmail} · Sair</button>}
           <button
             onClick={() => setShowRates(true)}
             className="inline-flex items-center gap-2 rounded-xl border border-slate-600/60 bg-slate-800/50 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors hover:bg-slate-800"
@@ -76,6 +89,9 @@ export default function LandDashboard() {
           </button>
         </div>
       </header>
+
+      {cloudEnabled && localDataCounts.receipts + localDataCounts.rates > 0 && <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-800/50 bg-amber-950/20 px-4 py-3 text-sm text-amber-100"><span>Há dados salvos neste navegador ({localDataCounts.receipts} recebimentos, {localDataCounts.rates} taxas INCC).</span><button onClick={() => void importLocalData()} className="rounded-lg border border-amber-700/60 px-3 py-2 font-medium hover:bg-amber-900/30">Importar para o Supabase</button></div>}
+      {dataError && <p role="alert" className="rounded-xl border border-red-900/60 bg-red-950/30 px-4 py-3 text-sm text-red-200">Erro ao sincronizar: {dataError}</p>}
 
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-700/50 bg-slate-900/50 px-4 py-3 text-sm">
         <span className="text-slate-400">Valor original total do contrato</span>
@@ -155,7 +171,7 @@ export default function LandDashboard() {
       </section>
 
       <p className="px-1 text-xs leading-relaxed text-slate-500">
-        As informações e taxas INCC-M são salvas neste navegador. Os meses ainda sem taxa informada usam a estimativa editável de 0,50%.
+        {cloudEnabled ? 'Os recebimentos e as taxas INCC-M são sincronizados pelo Supabase.' : 'Os recebimentos e taxas INCC-M são salvos neste navegador.'} Os meses ainda sem taxa informada usam a estimativa editável de 0,50%.
       </p>
 
       {showForm && <LandReceiptForm onClose={() => setShowForm(false)} />}

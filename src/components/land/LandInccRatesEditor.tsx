@@ -15,7 +15,7 @@ interface LandInccRatesEditorProps {
 }
 
 export default function LandInccRatesEditor({ onClose }: LandInccRatesEditorProps) {
-  const { inccRates, updateLandInccRates } = useApp()
+  const { inccRates, updateLandInccRates, cloudEnabled } = useApp()
   const [year, setYear] = useState(() => Math.min(LAND_YEARS[LAND_YEARS.length - 1], Math.max(LAND_YEARS[0], new Date().getFullYear())))
   const [draftRates, setDraftRates] = useState<Record<number, string>>({})
   const [error, setError] = useState('')
@@ -131,7 +131,7 @@ export default function LandInccRatesEditor({ onClose }: LandInccRatesEditorProp
             </div>
 
             {error && <p role="alert" className="text-sm palette-clay">{error}</p>}
-            {saved && <p role="status" className="text-sm palette-gold">Taxas de {year} salvas neste navegador.</p>}
+            {saved && <p role="status" className="text-sm palette-gold">Taxas de {year} {cloudEnabled ? 'sincronizadas com o Supabase.' : 'salvas neste navegador.'}</p>}
 
             <div className="flex justify-end gap-2 border-t border-slate-700/50 pt-4">
               <button onClick={onClose} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800">Fechar</button>
