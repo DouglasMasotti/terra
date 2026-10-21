@@ -156,7 +156,7 @@ function simulateAnnualLateCharges(
 
     // In 2030 the full balance is due on December 30, so the final-balance
     // default calculation replaces another annual-minimum shortfall bucket.
-    if (year < LAST_YEAR) {
+    if (year < LAST_YEAR && year < throughYear) {
       const shortfallAtClose = Math.max(0, LAND_ANNUAL_MINIMUM - receiptsInYear(yearReceipts, year))
       if (shortfallAtClose > 0) {
         buckets.push({

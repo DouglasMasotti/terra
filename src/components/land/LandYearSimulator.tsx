@@ -23,12 +23,18 @@ export default function LandYearSimulator({ simulatedYear, onYearChange, simulat
             <TrendingUp size={17} className="text-amber-300" />
             Avance o ano para acompanhar INCC e mora
           </h2>
-          <p className="mt-1 text-sm text-slate-400">Veja o fechamento de cada ano com os recebimentos registrados até aquela data.</p>
+          <p className="mt-1 text-sm text-slate-400">Avance o ano para ver os pagamentos registrados e a mora dos anos anteriores.</p>
         </div>
         <div className="rounded-xl border border-amber-300/20 bg-amber-300/5 px-4 py-2 text-right">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-100/60">Data da simulação</p>
           <p className="text-xl font-bold text-amber-300">{simulatedYear}</p>
-          <p className="text-xs text-slate-400">{simulatedYear === 2030 ? '30 de dezembro · vencimento' : '31 de dezembro · fechamento'}</p>
+          <p className="text-xs text-slate-400">
+            {simulatedYear === 2030
+              ? '30 de dezembro · vencimento'
+              : simulatedYear === LAND_YEARS[0]
+                ? 'sem mora anual anterior'
+                : `mora de ${simulatedYear - 1} aplicada`}
+          </p>
         </div>
       </div>
 
@@ -75,7 +81,7 @@ export default function LandYearSimulator({ simulatedYear, onYearChange, simulat
         </div>
         <div className="rounded-xl border border-rose-400/15 bg-rose-400/5 p-3.5 text-xs leading-relaxed text-rose-100/80">
           <p className="font-semibold text-rose-100">Falta da amortização anual</p>
-          <p className="mt-1">Se o total recebido no ano ficar abaixo de {fmtBRL(LAND_ANNUAL_MINIMUM)}, a projeção aplica multa de 2% sobre a falta e juros de 1% ao mês, pro rata die, até regularização. Recebimentos posteriores cobrem primeiro a falta anual mais antiga; a multa continua devida e os juros param sobre o valor regularizado.</p>
+          <p className="mt-1">Se o total recebido no ano ficar abaixo de {fmtBRL(LAND_ANNUAL_MINIMUM)}, a multa de 2% sobre a falta só aparece no ano seguinte. Os juros de 1% ao mês, pro rata die, também começam então e seguem até a regularização. Recebimentos posteriores cobrem primeiro a falta anual mais antiga; a multa continua devida e os juros param sobre o valor regularizado.</p>
         </div>
       </div>
 
@@ -101,7 +107,7 @@ export default function LandYearSimulator({ simulatedYear, onYearChange, simulat
       )}
 
       <p className="mt-3 text-[10px] leading-relaxed text-slate-500">
-        Projeção no fechamento indicado. Multas e juros são encargos separados do saldo principal corrigido pelo INCC; o simulador distribui pagamentos posteriores primeiro às faltas anuais mais antigas para estimar quando os juros cessam.
+        Multas e juros são encargos separados do saldo principal corrigido pelo INCC. A falta do ano selecionado só entra como mora quando o slider avança para o ano seguinte; pagamentos posteriores cobrem as faltas anuais mais antigas para estimar quando os juros cessam.
       </p>
     </section>
   )

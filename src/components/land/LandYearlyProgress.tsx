@@ -57,7 +57,7 @@ export default function LandYearlyProgress({ currentYear, yearTargets, lateCharg
       </div>
 
       <p className="mt-5 rounded-lg border border-slate-700/50 bg-slate-800/40 px-3 py-2.5 text-xs leading-relaxed text-slate-400">
-        O recebimento anual é somado entre D e W, independentemente de qual vendedor recebeu. Em 2030, o saldo integral corrigido vence até 30 de dezembro.
+        O recebimento anual é somado entre D e W, independentemente de qual vendedor recebeu. A multa por uma falta anual só aparece quando a simulação avança para o ano seguinte. Em 2030, o saldo integral corrigido vence até 30 de dezembro.
       </p>
     </section>
   )
