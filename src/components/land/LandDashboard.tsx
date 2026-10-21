@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '@/lib/AppContext'
 import { fmtBRL } from '@/lib/utils'
-import { FIRST_YEAR, LAND_TARGET_PER_LOT, LAND_TOTAL_TARGET, LAND_YEARS, LAST_YEAR, simulateLandYear, type LandYearProjection } from '@/lib/land-simulator'
+import { FIRST_YEAR, getAnnualInccFactor, LAND_TARGET_PER_LOT, LAND_TOTAL_TARGET, LAND_YEARS, LAST_YEAR, simulateLandYear, type LandYearProjection } from '@/lib/land-simulator'
 import { Plus, Settings2, Trash2 } from 'lucide-react'
 import LandReceiptForm from './LandReceiptForm'
 import LandInccRatesEditor from './LandInccRatesEditor'
@@ -28,9 +28,7 @@ export default function LandDashboard() {
     () => simulateLandYear(simulatedYear, landReceipts, inccRates),
     [simulatedYear, landReceipts, inccRates]
   )
-  const annualInccPercent = inccRates
-    .filter((rate) => rate.yearMonth.startsWith(`${simulatedYear}-`))
-    .reduce((total, rate) => total + rate.rate, 0)
+  const annualInccPercent = (getAnnualInccFactor(simulatedYear, inccRates) - 1) * 100
 
   const yearProjections = useMemo<LandYearProjection[]>(
     () => LAND_YEARS.map((year) => {
