@@ -121,7 +121,7 @@ export default function LandDashboard() {
               <Plus size={17} />
             </div>
             <p className="text-sm font-medium text-slate-300">Nenhum recebimento registrado</p>
-            <p className="mt-1 text-xs text-slate-500">Registre a data, o terreno e a conta que recebeu.</p>
+            <p className="mt-1 text-xs text-slate-500">Registre a data, o lote e o valor recebido.</p>
           </div>
         ) : (
           <div className="divide-y divide-slate-800/80">
@@ -135,7 +135,7 @@ export default function LandDashboard() {
                     <span className="text-sm font-medium text-white">Lote {receipt.type}</span>
                     <span className="text-xs text-slate-500">{formatReceiptDate(receipt.date)}</span>
                     <span className="rounded-full border border-slate-700 bg-slate-800/80 px-2 py-0.5 text-[10px] text-slate-400">
-                      Conta de {receipt.receivedBy ?? 'não informada'}
+                      Conta de {receipt.type === 'D' ? 'Douglas' : 'William'}
                     </span>
                   </div>
                 </div>

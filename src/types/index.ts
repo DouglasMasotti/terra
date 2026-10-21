@@ -10,5 +10,5 @@ export interface LandReceipt {
   amount: number
   type: 'D' | 'W'
   year: number
-  receivedBy: 'Douglas' | 'William'
+  receivedBy?: 'Douglas' | 'William'
 }

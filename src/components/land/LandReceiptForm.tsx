@@ -20,7 +20,6 @@ export default function LandReceiptForm({ onClose }: LandReceiptFormProps) {
   const [date, setDate] = useState(localToday)
   const [amount, setAmount] = useState('')
   const [type, setType] = useState<'D' | 'W'>('D')
-  const [receivedBy, setReceivedBy] = useState<'Douglas' | 'William'>('Douglas')
   const [error, setError] = useState('')
 
   const year = Number(date.slice(0, 4))
@@ -50,7 +49,6 @@ export default function LandReceiptForm({ onClose }: LandReceiptFormProps) {
       amount: value,
       type,
       year,
-      receivedBy,
     }
 
     addLandReceipt(receipt)
@@ -100,7 +98,7 @@ export default function LandReceiptForm({ onClose }: LandReceiptFormProps) {
             </label>
 
             <fieldset>
-              <legend className="mb-2 text-xs font-semibold text-slate-400">Pagamento referente ao terreno</legend>
+              <legend className="mb-2 text-xs font-semibold text-slate-400">Lote do recebimento</legend>
               <div className="grid grid-cols-2 gap-2">
                 {(['D', 'W'] as const).map((lot) => (
                   <button
@@ -114,23 +112,7 @@ export default function LandReceiptForm({ onClose }: LandReceiptFormProps) {
                   </button>
                 ))}
               </div>
-            </fieldset>
-
-            <fieldset>
-              <legend className="mb-2 text-xs font-semibold text-slate-400">Recebido na conta de</legend>
-              <div className="grid grid-cols-2 gap-2">
-                {(['Douglas', 'William'] as const).map((seller) => (
-                  <button
-                    key={seller}
-                    type="button"
-                    aria-pressed={receivedBy === seller}
-                    onClick={() => setReceivedBy(seller)}
-                    className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${receivedBy === seller ? 'border-emerald-400/60 bg-emerald-400/10 text-emerald-300' : 'border-slate-700 bg-slate-800 text-slate-400 hover:text-white'}`}
-                  >
-                    {seller}
-                  </button>
-                ))}
-              </div>
+              <p className="mt-2 text-xs text-slate-500">Lote D: Douglas · Lote W: William</p>
             </fieldset>
 
             {error && <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-300">{error}</p>}
