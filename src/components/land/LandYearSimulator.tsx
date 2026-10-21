@@ -6,11 +6,12 @@ import { TrendingUp } from 'lucide-react'
 
 interface LandYearSimulatorProps {
   simulatedYear: number
+  annualInccPercent: number
   onYearChange: (year: number) => void
   simulation: LandSimulation
 }
 
-export default function LandYearSimulator({ simulatedYear, onYearChange, simulation }: LandYearSimulatorProps) {
+export default function LandYearSimulator({ simulatedYear, annualInccPercent, onYearChange, simulation }: LandYearSimulatorProps) {
   const totalPenalty = simulation.latePenalty + simulation.finalPenalty
   const annualChargeYears = simulation.annualLateCharges.filter((charge) => charge.shortfallAtClose > 0)
   const selectedAnnualMinimum = simulation.yearTargets.find((target) => target.year === simulatedYear)?.min ?? LAND_ANNUAL_MINIMUM
@@ -25,6 +26,11 @@ export default function LandYearSimulator({ simulatedYear, onYearChange, simulat
             Avance o ano para acompanhar o saldo corrigido
           </h2>
           <p className="mt-1 text-sm text-slate-400">O INCC atualiza o saldo em janeiro; a parcela anual é 15% desse saldo.</p>
+        </div>
+        <div className="rounded-xl palette-border-wine palette-bg-wine-soft px-5 py-3 text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-wider palette-sand">INCC do ano</p>
+          <p className="mt-1 text-sm font-semibold text-slate-300">{simulatedYear}</p>
+          <p className="text-2xl font-bold palette-cream">{annualInccPercent.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</p>
         </div>
         <div className="rounded-xl palette-border-gold palette-bg-gold-soft px-4 py-2 text-right">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Data da simulação</p>

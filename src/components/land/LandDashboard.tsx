@@ -28,6 +28,9 @@ export default function LandDashboard() {
     () => simulateLandYear(simulatedYear, landReceipts, inccRates),
     [simulatedYear, landReceipts, inccRates]
   )
+  const annualInccPercent = inccRates
+    .filter((rate) => rate.yearMonth.startsWith(`${simulatedYear}-`))
+    .reduce((total, rate) => total + rate.rate, 0)
 
   const yearProjections = useMemo<LandYearProjection[]>(
     () => LAND_YEARS.map((year) => {
@@ -84,6 +87,7 @@ export default function LandDashboard() {
 
       <LandYearSimulator
         simulatedYear={simulatedYear}
+        annualInccPercent={annualInccPercent}
         onYearChange={setSimulatedYear}
         simulation={simulation}
       />
