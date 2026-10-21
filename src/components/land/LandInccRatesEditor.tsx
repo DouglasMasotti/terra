@@ -33,11 +33,10 @@ export default function LandInccRatesEditor({ onClose }: LandInccRatesEditorProp
   }, [year, inccRates])
 
   const annualPercent = useMemo(() => {
-    const factor = MONTHS.reduce((accumulator, _, index) => {
+    return MONTHS.reduce((total, _, index) => {
       const rate = Number(draftRates[index + 1] ?? DEFAULT_MONTHLY_INCC)
-      return accumulator * (1 + (Number.isFinite(rate) ? rate : DEFAULT_MONTHLY_INCC) / 100)
-    }, 1)
-    return (factor - 1) * 100
+      return total + (Number.isFinite(rate) ? rate : DEFAULT_MONTHLY_INCC)
+    }, 0)
   }, [draftRates])
 
   const handleSave = () => {
@@ -47,8 +46,8 @@ export default function LandInccRatesEditor({ onClose }: LandInccRatesEditorProp
       return { yearMonth: `${year}-${String(month).padStart(2, '0')}`, rate, source: 'manual' as const }
     })
 
-    if (yearRates.some(({ rate }) => !Number.isFinite(rate) || rate <= -100)) {
-      setError('Informe uma taxa numérica maior que -100% para cada mês.')
+    if (yearRates.some(({ rate }) => !Number.isFinite(rate) || rate <= -100) || yearRates.reduce((sum, { rate }) => sum + rate, 0) <= -100) {
+      setError('Cada taxa mensal e a soma anual precisam ser maiores que -100%.')
       setSaved(false)
       return
     }
@@ -92,7 +91,7 @@ export default function LandInccRatesEditor({ onClose }: LandInccRatesEditorProp
                 </select>
               </label>
               <div className="text-sm text-slate-400">
-                Acumulado composto do ano <span className="ml-1 font-semibold text-amber-300">{annualPercent.toFixed(2)}%</span>
+                Soma anual simples <span className="ml-1 font-semibold text-amber-300">{annualPercent.toFixed(2)}%</span>
               </div>
             </div>
 
@@ -128,7 +127,7 @@ export default function LandInccRatesEditor({ onClose }: LandInccRatesEditorProp
             </div>
 
             <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 px-3 py-2.5 text-xs leading-relaxed text-blue-200/80">
-              As 12 taxas são compostas e aplicadas em janeiro do ano seguinte somente ao saldo que restar em cada terreno. As taxas de 2030 ficam registradas para eventual saldo levado além do prazo final.
+              A taxa anual é a soma simples das 12 taxas mensais. Com 0,50% em cada mês, o total anual é 6,00%. Essa taxa é aplicada em janeiro do ano seguinte somente ao saldo que restar em cada terreno. As taxas de 2030 ficam registradas para eventual saldo levado além do prazo final.
             </div>
 
             {error && <p role="alert" className="text-sm text-red-400">{error}</p>}

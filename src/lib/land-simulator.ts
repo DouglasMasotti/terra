@@ -11,6 +11,10 @@ export const LAND_YEARS = Array.from(
   (_, index) => FIRST_YEAR + index
 )
 
+const ANNUAL_LATE_FEE_RATE = 0.02
+const MONTHLY_LATE_INTEREST_RATE = 0.01
+const FINAL_COMPENSATORY_FINE_RATE = 0.10
+
 export interface TerrainBreakdown {
   terrain: 'D' | 'W'
   received: number
@@ -29,12 +33,28 @@ export interface YearTarget {
   met: boolean
 }
 
+export interface AnnualLateCharge {
+  year: number
+  shortfallAtClose: number
+  latePrincipalRemaining: number
+  penalty: number
+  interest: number
+}
+
 export interface LandSimulation {
   year: number
+  asOfDate: string
   receivedUpToYear: number
   pendingAmount: number
   inccAccumulated: number
   totalWithIncc: number
+  annualLateCharges: AnnualLateCharge[]
+  latePrincipalOutstanding: number
+  latePenalty: number
+  lateInterest: number
+  finalPenalty: number
+  conditionalCompensatoryPenalty: number
+  totalDueWithCharges: number
   breakdown: TerrainBreakdown[]
   yearTargets: YearTarget[]
 }
@@ -44,13 +64,13 @@ export function getMonthlyInccRate(year: number, month: number, rates: InccRate[
   return rates.find((rate) => rate.yearMonth === yearMonth)?.rate ?? DEFAULT_MONTHLY_INCC
 }
 
-/** The 12 monthly INCC rates compound on the unpaid balance at year end. */
+/** Monthly rates are added, then applied once to the unpaid balance at year end. */
 export function getAnnualInccFactor(year: number, rates: InccRate[]): number {
-  let factor = 1
+  let annualPercent = 0
   for (let month = 1; month <= 12; month += 1) {
-    factor *= 1 + getMonthlyInccRate(year, month, rates) / 100
+    annualPercent += getMonthlyInccRate(year, month, rates)
   }
-  return factor
+  return Math.max(0, 1 + annualPercent / 100)
 }
 
 function totalReceived(receipts: LandReceipt[], terrain: 'D' | 'W', throughYear: number): number {
@@ -65,6 +85,100 @@ function receiptsInYear(receipts: LandReceipt[], year: number): number {
     .reduce((sum, receipt) => sum + receipt.amount, 0)
 }
 
+interface LateChargeBucket {
+  year: number
+  shortfallAtClose: number
+  latePrincipalRemaining: number
+  penalty: number
+  interest: number
+}
+
+function utcDayNumber(date: string): number {
+  const [year, month, day] = date.split('-').map(Number)
+  return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000)
+}
+
+function dayAfter(date: string): string {
+  const nextDay = new Date(utcDayNumber(date) * 86_400_000 + 86_400_000)
+  return nextDay.toISOString().slice(0, 10)
+}
+
+function accrueLateInterest(buckets: LateChargeBucket[], fromDate: string, throughDate: string): void {
+  const days = Math.max(0, utcDayNumber(throughDate) - utcDayNumber(fromDate) + 1)
+  if (days === 0) return
+
+  for (const bucket of buckets) {
+    bucket.interest += bucket.latePrincipalRemaining * MONTHLY_LATE_INTEREST_RATE * days / 30
+  }
+}
+
+function applyReceiptToOldestLatePrincipal(buckets: LateChargeBucket[], amount: number): void {
+  let remaining = amount
+  for (const bucket of buckets) {
+    const applied = Math.min(bucket.latePrincipalRemaining, remaining)
+    bucket.latePrincipalRemaining -= applied
+    remaining -= applied
+    if (remaining <= 0) break
+  }
+}
+
+function simulateAnnualLateCharges(
+  throughYear: number,
+  receipts: LandReceipt[],
+  inccRates: InccRate[],
+  asOfDate: string
+): AnnualLateCharge[] {
+  const buckets: LateChargeBucket[] = []
+
+  for (let year = FIRST_YEAR; year <= throughYear; year += 1) {
+    const yearStart = `${year}-01-01`
+    const yearEnd = year === LAST_YEAR ? asOfDate : `${year}-12-31`
+
+    // A prior-year shortfall is part of the unpaid balance carried into January.
+    if (year > FIRST_YEAR) {
+      const priorYearFactor = getAnnualInccFactor(year - 1, inccRates)
+      for (const bucket of buckets) {
+        bucket.latePrincipalRemaining *= priorYearFactor
+      }
+    }
+
+    const yearReceipts = receipts
+      .filter((receipt) => receipt.year === year && receipt.date <= yearEnd)
+      .sort((a, b) => a.date.localeCompare(b.date))
+
+    let interestCursor = yearStart
+    for (const receipt of yearReceipts) {
+      accrueLateInterest(buckets, interestCursor, receipt.date)
+      applyReceiptToOldestLatePrincipal(buckets, receipt.amount)
+      interestCursor = dayAfter(receipt.date)
+    }
+    accrueLateInterest(buckets, interestCursor, yearEnd)
+
+    // In 2030 the full balance is due on December 30, so the final-balance
+    // default calculation replaces another annual-minimum shortfall bucket.
+    if (year < LAST_YEAR) {
+      const shortfallAtClose = Math.max(0, LAND_ANNUAL_MINIMUM - receiptsInYear(yearReceipts, year))
+      if (shortfallAtClose > 0) {
+        buckets.push({
+          year,
+          shortfallAtClose,
+          latePrincipalRemaining: shortfallAtClose,
+          penalty: shortfallAtClose * ANNUAL_LATE_FEE_RATE,
+          interest: 0,
+        })
+      }
+    }
+  }
+
+  return buckets.map(({ year, shortfallAtClose, latePrincipalRemaining, penalty, interest }) => ({
+    year,
+    shortfallAtClose,
+    latePrincipalRemaining,
+    penalty,
+    interest,
+  }))
+}
+
 /**
  * Replays each contract year in order. A year's rates are accumulated while
  * that year is in progress, then compound onto each lot's remaining balance
@@ -76,7 +190,8 @@ export function simulateLandYear(
   inccRates: InccRate[]
 ): LandSimulation {
   const year = Math.min(LAST_YEAR, Math.max(FIRST_YEAR, targetYear))
-  const receipts = allReceipts.filter((receipt) => receipt.year <= year)
+  const asOfDate = year === LAST_YEAR ? '2030-12-30' : `${year}-12-31`
+  const receipts = allReceipts.filter((receipt) => receipt.year <= year && receipt.date <= asOfDate)
   let pendingD = LAND_TARGET_PER_LOT
   let pendingW = LAND_TARGET_PER_LOT
 
@@ -107,6 +222,14 @@ export function simulateLandYear(
   const receivedUpToYear = receivedD + receivedW
   const pendingAmount = pendingD + pendingW
   const inccAccumulated = Math.max(0, pendingD - baseRemainingD) + Math.max(0, pendingW - baseRemainingW)
+  const annualLateCharges = simulateAnnualLateCharges(year, receipts, inccRates, asOfDate)
+  const latePrincipalOutstanding = annualLateCharges.reduce((sum, charge) => sum + charge.latePrincipalRemaining, 0)
+  const latePenalty = annualLateCharges.reduce((sum, charge) => sum + charge.penalty, 0)
+  const lateInterest = annualLateCharges.reduce((sum, charge) => sum + charge.interest, 0)
+  const finalPenalty = year === LAST_YEAR ? pendingAmount * ANNUAL_LATE_FEE_RATE : 0
+  const conditionalCompensatoryPenalty = year === LAST_YEAR && pendingAmount > 0
+    ? LAND_TOTAL_TARGET * FINAL_COMPENSATORY_FINE_RATE
+    : 0
 
   const breakdown: TerrainBreakdown[] = [
     {
@@ -130,7 +253,7 @@ export function simulateLandYear(
   ]
 
   const yearTargets = LAND_YEARS.map((targetYear) => {
-    const receivedThisYear = receiptsInYear(allReceipts, targetYear)
+    const receivedThisYear = receiptsInYear(receipts, targetYear)
     return {
       year: targetYear,
       minPercent: 0.15,
@@ -142,10 +265,18 @@ export function simulateLandYear(
 
   return {
     year,
+    asOfDate,
     receivedUpToYear,
     pendingAmount,
     inccAccumulated,
     totalWithIncc: receivedUpToYear + pendingAmount,
+    annualLateCharges,
+    latePrincipalOutstanding,
+    latePenalty,
+    lateInterest,
+    finalPenalty,
+    conditionalCompensatoryPenalty,
+    totalDueWithCharges: pendingAmount + latePenalty + lateInterest + finalPenalty,
     breakdown,
     yearTargets,
   }

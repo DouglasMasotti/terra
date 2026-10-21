@@ -1,14 +1,15 @@
 'use client'
 
 import { fmtBRL } from '@/lib/utils'
-import { LAND_ANNUAL_MINIMUM, LAST_YEAR, type YearTarget } from '@/lib/land-simulator'
+import { LAND_ANNUAL_MINIMUM, LAST_YEAR, type AnnualLateCharge, type YearTarget } from '@/lib/land-simulator'
 
 interface LandYearlyProgressProps {
   currentYear: number
   yearTargets: YearTarget[]
+  lateCharges: AnnualLateCharge[]
 }
 
-export default function LandYearlyProgress({ currentYear, yearTargets }: LandYearlyProgressProps) {
+export default function LandYearlyProgress({ currentYear, yearTargets, lateCharges }: LandYearlyProgressProps) {
   return (
     <section className="rounded-2xl border border-slate-700/50 bg-slate-900/60 p-5 sm:p-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
@@ -23,11 +24,12 @@ export default function LandYearlyProgress({ currentYear, yearTargets }: LandYea
         {yearTargets.map((target) => {
           const isPassed = currentYear > target.year
           const isCurrent = currentYear === target.year
-          const missed = isPassed && !target.met
+          const missed = currentYear >= target.year && !target.met
           const met = target.met
+          const lateCharge = lateCharges.find((charge) => charge.year === target.year)
           const percentage = Math.min((target.receivedThisYear / LAND_ANNUAL_MINIMUM) * 100, 100)
           const color = missed ? 'bg-rose-400' : met ? 'bg-emerald-400' : isCurrent ? 'bg-amber-300' : 'bg-slate-600'
-          const status = met ? 'Meta atingida' : missed ? 'Mínimo não atingido' : isCurrent ? 'Em andamento' : 'Previsto'
+          const status = met ? 'Meta atingida' : missed ? (isCurrent ? 'Não atingido no fechamento simulado' : 'Mínimo não atingido') : isCurrent ? 'Atingido no fechamento simulado' : 'Previsto'
 
           return (
             <div key={target.year}>
@@ -44,6 +46,11 @@ export default function LandYearlyProgress({ currentYear, yearTargets }: LandYea
               <div className="h-2 overflow-hidden rounded-full bg-slate-800">
                 <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${percentage}%` }} />
               </div>
+              {lateCharge && (lateCharge.penalty > 0 || lateCharge.interest > 0) && (
+                <p className="mt-1.5 text-[11px] text-rose-200/80">
+                  Falta anual de {fmtBRL(lateCharge.shortfallAtClose)} · multa {fmtBRL(lateCharge.penalty)} · juros acumulados {fmtBRL(lateCharge.interest)}
+                </p>
+              )}
             </div>
           )
         })}

@@ -7,6 +7,7 @@ import { FIRST_YEAR, LAND_TARGET_PER_LOT, LAND_TOTAL_TARGET, LAST_YEAR, simulate
 import { Plus, Settings2, Trash2 } from 'lucide-react'
 import LandReceiptForm from './LandReceiptForm'
 import LandInccRatesEditor from './LandInccRatesEditor'
+import LandYearSimulator from './LandYearSimulator'
 import LandYearlyProgress from './LandYearlyProgress'
 
 function currentContractYear(): number {
@@ -21,11 +22,11 @@ export default function LandDashboard() {
   const { landReceipts, inccRates, isLoaded, removeLandReceipt } = useApp()
   const [showForm, setShowForm] = useState(false)
   const [showRates, setShowRates] = useState(false)
-  const year = currentContractYear()
+  const [simulatedYear, setSimulatedYear] = useState(currentContractYear)
 
   const simulation = useMemo(
-    () => simulateLandYear(year, landReceipts, inccRates),
-    [year, landReceipts, inccRates]
+    () => simulateLandYear(simulatedYear, landReceipts, inccRates),
+    [simulatedYear, landReceipts, inccRates]
   )
 
   const receipts = useMemo(
@@ -66,6 +67,12 @@ export default function LandDashboard() {
         <span className="font-semibold text-white">{fmtBRL(LAND_TOTAL_TARGET)} <span className="font-normal text-slate-500">· {fmtBRL(LAND_TARGET_PER_LOT)} por terreno</span></span>
       </div>
 
+      <LandYearSimulator
+        simulatedYear={simulatedYear}
+        onYearChange={setSimulatedYear}
+        simulation={simulation}
+      />
+
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2" aria-label="Saldos por terreno">
         {simulation.breakdown.map((terrain) => (
           <TerrainCard key={terrain.terrain} terrain={terrain} />
@@ -73,12 +80,16 @@ export default function LandDashboard() {
       </section>
 
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Resumo do contrato">
-        <SummaryMetric label={`Recebido até ${year}`} value={fmtBRL(simulation.receivedUpToYear)} color="text-emerald-300" />
+        <SummaryMetric label={`Recebido até ${simulatedYear}`} value={fmtBRL(simulation.receivedUpToYear)} color="text-emerald-300" />
         <SummaryMetric label="Saldo corrigido a receber" value={fmtBRL(simulation.pendingAmount)} color="text-amber-200" />
         <SummaryMetric label="INCC aplicado ao saldo" value={`+${fmtBRL(simulation.inccAccumulated)}`} color="text-violet-200" />
       </section>
 
-      <LandYearlyProgress currentYear={year} yearTargets={simulation.yearTargets} />
+      <LandYearlyProgress
+        currentYear={simulatedYear}
+        yearTargets={simulation.yearTargets}
+        lateCharges={simulation.annualLateCharges}
+      />
 
       <section className="overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-900/60">
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-slate-700/50 px-5 py-4 sm:px-6">

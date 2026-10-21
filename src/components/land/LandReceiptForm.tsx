@@ -24,7 +24,7 @@ export default function LandReceiptForm({ onClose }: LandReceiptFormProps) {
   const [error, setError] = useState('')
 
   const year = Number(date.slice(0, 4))
-  const isYearValid = year >= 2026 && year <= 2030
+  const isDateValid = date >= '2026-01-01' && date <= '2030-12-30'
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -34,8 +34,8 @@ export default function LandReceiptForm({ onClose }: LandReceiptFormProps) {
       setError('Selecione a data do recebimento.')
       return
     }
-    if (!isYearValid) {
-      setError('A data deve estar entre 2026 e 2030.')
+    if (!isDateValid) {
+      setError('A data deve estar entre 01/01/2026 e 30/12/2030.')
       return
     }
     const value = Number(amount)
@@ -79,9 +79,9 @@ export default function LandReceiptForm({ onClose }: LandReceiptFormProps) {
                 type="date"
                 value={date}
                 min="2026-01-01"
-                max="2030-12-31"
+                max="2030-12-30"
                 onChange={(event) => setDate(event.target.value)}
-                className={`mt-2 w-full rounded-lg border bg-slate-800 px-3 py-2.5 text-sm text-white outline-none ${isYearValid ? 'border-slate-700 focus:border-blue-500' : 'border-red-500/70'}`}
+                className={`mt-2 w-full rounded-lg border bg-slate-800 px-3 py-2.5 text-sm text-white outline-none ${isDateValid ? 'border-slate-700 focus:border-blue-500' : 'border-red-500/70'}`}
               />
             </label>
 
