@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '@/lib/AppContext'
 import { fmtBRL } from '@/lib/utils'
-import { FIRST_YEAR, LAND_TARGET_PER_LOT, LAND_TOTAL_TARGET, LAST_YEAR, simulateLandYear } from '@/lib/land-simulator'
+import { FIRST_YEAR, LAND_TARGET_PER_LOT, LAND_TOTAL_TARGET, LAND_YEARS, LAST_YEAR, simulateLandYear, type LandYearProjection } from '@/lib/land-simulator'
 import { Plus, Settings2, Trash2 } from 'lucide-react'
 import LandReceiptForm from './LandReceiptForm'
 import LandInccRatesEditor from './LandInccRatesEditor'
@@ -27,6 +27,21 @@ export default function LandDashboard() {
   const simulation = useMemo(
     () => simulateLandYear(simulatedYear, landReceipts, inccRates),
     [simulatedYear, landReceipts, inccRates]
+  )
+
+  const yearProjections = useMemo<LandYearProjection[]>(
+    () => LAND_YEARS.map((year) => {
+      const yearSimulation = simulateLandYear(year, landReceipts, inccRates)
+      const yearTarget = yearSimulation.yearTargets.find((target) => target.year === year)!
+      return {
+        year,
+        receivedThisYear: yearTarget.receivedThisYear,
+        met: yearTarget.met,
+        inccAddedAtStartOfYear: yearSimulation.inccAddedAtStartOfYear,
+        totalDueAtYearEnd: yearSimulation.pendingAmount,
+      }
+    }),
+    [landReceipts, inccRates]
   )
 
   const receipts = useMemo(
@@ -87,7 +102,7 @@ export default function LandDashboard() {
 
       <LandYearlyProgress
         currentYear={simulatedYear}
-        yearTargets={simulation.yearTargets}
+        yearProjections={yearProjections}
         lateCharges={simulation.annualLateCharges}
       />
 
