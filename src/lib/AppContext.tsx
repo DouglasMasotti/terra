@@ -2,9 +2,11 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { InccRate, LandReceipt } from '@/types'
+import { INITIAL_INCC_RATES } from '@/lib/land-simulator'
 
 const RECEIPTS_KEY = 'terra_land_receipts_v1'
 const RATES_KEY = 'terra_land_incc_rates_v1'
+const RATES_SEED_KEY = 'terra_land_incc_seed_v1'
 
 interface AppContextValue {
   landReceipts: LandReceipt[]
@@ -33,7 +35,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setLandReceipts(readArray<LandReceipt>(RECEIPTS_KEY))
-    setInccRates(readArray<InccRate>(RATES_KEY))
+    const storedRates = readArray<InccRate>(RATES_KEY)
+    if (localStorage.getItem(RATES_SEED_KEY) !== 'applied') {
+      const suppliedMonths = new Set(INITIAL_INCC_RATES.map((rate) => rate.yearMonth))
+      setInccRates([
+        ...storedRates.filter((rate) => !suppliedMonths.has(rate.yearMonth)),
+        ...INITIAL_INCC_RATES,
+      ].sort((a, b) => a.yearMonth.localeCompare(b.yearMonth)))
+      localStorage.setItem(RATES_SEED_KEY, 'applied')
+    } else {
+      setInccRates(storedRates)
+    }
     setIsLoaded(true)
   }, [])
 

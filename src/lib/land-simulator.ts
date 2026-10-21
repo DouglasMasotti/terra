@@ -4,6 +4,17 @@ export const LAND_TARGET_PER_LOT = 180000
 export const LAND_TOTAL_TARGET = LAND_TARGET_PER_LOT * 2
 export const LAND_ANNUAL_MINIMUM = LAND_TOTAL_TARGET * 0.15
 export const DEFAULT_MONTHLY_INCC = 0.5
+export const INITIAL_INCC_RATES: InccRate[] = [
+  { yearMonth: '2026-01', rate: 0.63, source: 'auto' },
+  { yearMonth: '2026-02', rate: 0.34, source: 'auto' },
+  { yearMonth: '2026-03', rate: 0.36, source: 'auto' },
+  { yearMonth: '2026-04', rate: 1.04, source: 'auto' },
+  { yearMonth: '2026-05', rate: 0.77, source: 'auto' },
+  { yearMonth: '2026-06', rate: 0.85, source: 'auto' },
+  { yearMonth: '2026-07', rate: 0.62, source: 'auto' },
+  { yearMonth: '2026-08', rate: 0.85, source: 'auto' },
+  { yearMonth: '2026-09', rate: 0.25, source: 'auto' },
+]
 export const FIRST_YEAR = 2026
 export const LAST_YEAR = 2030
 export const LAND_YEARS = Array.from(

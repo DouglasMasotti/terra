@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f172a;
-  --foreground: #e2e8f0;
+  --background: #201815;
+  --foreground: #eee3d2;
+  --palette-wine: #74110d;
+  --palette-brick: #9b3c2b;
+  --palette-clay: #aa7158;
+  --palette-sand: #c8a274;
+  --palette-gold: #e5be68;
+  --palette-cream: #ffe7a0;
 }
 
 @theme inline {
@@ -17,9 +23,32 @@ html, body {
 
 body {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+  background: linear-gradient(135deg, #201815 0%, #30231e 50%, #201815 100%);
   background-attachment: fixed;
 }
+
+.palette-wine { color: var(--palette-wine); }
+.palette-brick { color: var(--palette-brick); }
+.palette-clay { color: var(--palette-clay); }
+.palette-sand { color: var(--palette-sand); }
+.palette-gold { color: var(--palette-gold); }
+.palette-cream { color: var(--palette-cream); }
+.palette-bg-wine { background-color: var(--palette-wine); }
+.palette-bg-brick { background-color: var(--palette-brick); }
+.palette-bg-clay { background-color: var(--palette-clay); }
+.palette-bg-sand { background-color: var(--palette-sand); }
+.palette-bg-gold { background-color: var(--palette-gold); }
+.palette-bg-cream { background-color: var(--palette-cream); }
+.palette-bg-wine-soft { background-color: color-mix(in srgb, var(--palette-wine) 18%, transparent); }
+.palette-bg-brick-soft { background-color: color-mix(in srgb, var(--palette-brick) 16%, transparent); }
+.palette-bg-clay-soft { background-color: color-mix(in srgb, var(--palette-clay) 16%, transparent); }
+.palette-bg-sand-soft { background-color: color-mix(in srgb, var(--palette-sand) 14%, transparent); }
+.palette-bg-gold-soft { background-color: color-mix(in srgb, var(--palette-gold) 12%, transparent); }
+.palette-border-wine { border-color: color-mix(in srgb, var(--palette-wine) 45%, transparent); }
+.palette-border-brick { border-color: color-mix(in srgb, var(--palette-brick) 45%, transparent); }
+.palette-border-clay { border-color: color-mix(in srgb, var(--palette-clay) 40%, transparent); }
+.palette-border-sand { border-color: color-mix(in srgb, var(--palette-sand) 40%, transparent); }
+.palette-border-gold { border-color: color-mix(in srgb, var(--palette-gold) 35%, transparent); }
 
 ::-webkit-scrollbar {
   width: 6px;

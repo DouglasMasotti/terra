@@ -69,7 +69,7 @@ export default function LandInccRatesEditor({ onClose }: LandInccRatesEditorProp
         >
           <div className="flex items-start justify-between gap-4 border-b border-slate-700/60 p-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-400">Terrenos D / W</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] palette-gold">Terrenos D / W</p>
               <h2 id="land-incc-title" className="mt-1 text-lg font-semibold text-white">INCC-M mensal</h2>
               <p className="mt-1 text-sm text-slate-400">Ajuste as taxas de janeiro a dezembro. Meses sem taxa salva começam em 0,50%.</p>
             </div>
@@ -85,13 +85,13 @@ export default function LandInccRatesEditor({ onClose }: LandInccRatesEditorProp
                 <select
                   value={year}
                   onChange={(event) => setYear(Number(event.target.value))}
-                  className="min-w-40 rounded-lg border border-slate-600/70 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-amber-500"
+                  className="min-w-40 rounded-lg border border-slate-600/70 bg-slate-900 px-3 py-2 text-sm text-white outline-none focus:border-[#E5BE68]"
                 >
                   {LAND_YEARS.map((option) => <option key={option} value={option}>{option}</option>)}
                 </select>
               </label>
               <div className="text-sm text-slate-400">
-                Soma anual simples <span className="ml-1 font-semibold text-amber-300">{annualPercent.toFixed(2)}%</span>
+                Soma anual simples <span className="ml-1 font-semibold palette-cream">{annualPercent.toFixed(2)}%</span>
               </div>
             </div>
 
@@ -114,7 +114,7 @@ export default function LandInccRatesEditor({ onClose }: LandInccRatesEditorProp
                           setDraftRates((current) => ({ ...current, [month]: event.target.value }))
                           setSaved(false)
                         }}
-                        className="w-24 rounded-md border border-slate-600/70 bg-slate-900 px-2.5 py-1.5 text-right text-sm text-white outline-none focus:border-amber-500"
+                        className="w-24 rounded-md border border-slate-600/70 bg-slate-900 px-2.5 py-1.5 text-right text-sm text-white outline-none focus:border-[#E5BE68]"
                       />
                       <span className="w-14 text-right text-[10px] text-slate-500">
                         {storedRate?.source === 'auto' ? 'importada' : storedRate ? 'salva' : 'padrão'}
@@ -126,16 +126,16 @@ export default function LandInccRatesEditor({ onClose }: LandInccRatesEditorProp
               })}
             </div>
 
-            <div className="rounded-lg border border-blue-500/20 bg-blue-500/5 px-3 py-2.5 text-xs leading-relaxed text-blue-200/80">
+            <div className="rounded-lg palette-border-sand palette-bg-sand-soft px-3 py-2.5 text-xs leading-relaxed text-slate-300">
               A taxa anual é a soma simples das 12 taxas mensais. Com 0,50% em cada mês, o total anual é 6,00%. Essa taxa é aplicada em janeiro do ano seguinte somente ao saldo que restar em cada terreno. As taxas de 2030 ficam registradas para eventual saldo levado além do prazo final.
             </div>
 
-            {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
-            {saved && <p role="status" className="text-sm text-emerald-400">Taxas de {year} salvas neste navegador.</p>}
+            {error && <p role="alert" className="text-sm palette-clay">{error}</p>}
+            {saved && <p role="status" className="text-sm palette-gold">Taxas de {year} salvas neste navegador.</p>}
 
             <div className="flex justify-end gap-2 border-t border-slate-700/50 pt-4">
               <button onClick={onClose} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800">Fechar</button>
-              <button onClick={handleSave} className="rounded-lg border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-sm font-semibold text-amber-300 hover:bg-amber-400/20">Salvar taxas</button>
+              <button onClick={handleSave} className="rounded-lg palette-border-gold palette-bg-gold-soft px-4 py-2 text-sm font-semibold palette-cream hover:bg-[#E5BE68]/20">Salvar taxas</button>
             </div>
           </div>
         </section>
