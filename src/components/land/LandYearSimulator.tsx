@@ -27,12 +27,12 @@ export default function LandYearSimulator({ simulatedYear, annualInccPercent, on
           </h2>
           <p className="mt-1 text-sm text-slate-400">O INCC atualiza o saldo em janeiro; a parcela anual é 15% desse saldo.</p>
         </div>
-        <div className="rounded-xl palette-border-wine palette-bg-wine-soft px-5 py-3 text-center">
+        <div className="flex min-h-[5.25rem] w-48 flex-col justify-center rounded-xl palette-border-wine palette-bg-wine-soft px-4 py-2 text-right">
           <p className="text-[10px] font-semibold uppercase tracking-wider palette-sand">INCC do ano</p>
-          <p className="mt-1 text-sm font-semibold text-slate-300">{simulatedYear}</p>
-          <p className="text-2xl font-bold palette-cream">{annualInccPercent.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</p>
+          <p className="text-xl font-bold palette-cream">{simulatedYear}</p>
+          <p className="text-xs text-slate-400">{annualInccPercent.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</p>
         </div>
-        <div className="rounded-xl palette-border-gold palette-bg-gold-soft px-4 py-2 text-right">
+        <div className="flex min-h-[5.25rem] w-48 flex-col justify-center rounded-xl palette-border-gold palette-bg-gold-soft px-4 py-2 text-right">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Data da simulação</p>
           <p className="text-xl font-bold palette-cream">{simulatedYear}</p>
           <p className="text-xs text-slate-400">

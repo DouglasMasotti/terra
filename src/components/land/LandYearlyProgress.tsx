@@ -47,9 +47,6 @@ export default function LandYearlyProgress({ currentYear, yearProjections, lateC
               <div className="h-2 overflow-hidden rounded-full bg-slate-800">
                 <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${percentage}%` }} />
               </div>
-              <div className="mt-1.5 flex flex-wrap justify-end gap-x-4 gap-y-1 text-[11px]">
-                <span className="font-medium text-slate-300">Saldo devido: {fmtBRL(projection.totalDueAtYearEnd)}</span>
-              </div>
               {lateCharge && (lateCharge.penalty > 0 || lateCharge.interest > 0) && (
                 <p className="mt-1.5 text-[11px] palette-clay">
                   Falta anual de {fmtBRL(lateCharge.shortfallAtClose)} · multa {fmtBRL(lateCharge.penalty)} · juros acumulados {fmtBRL(lateCharge.interest)}

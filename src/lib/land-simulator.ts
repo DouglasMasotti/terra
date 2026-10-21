@@ -49,7 +49,6 @@ export interface LandYearProjection {
   receivedThisYear: number
   annualMinimum: number
   met: boolean
-  totalDueAtYearEnd: number
 }
 
 export interface AnnualLateCharge {

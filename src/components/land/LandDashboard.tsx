@@ -41,7 +41,6 @@ export default function LandDashboard() {
         receivedThisYear: yearTarget.receivedThisYear,
         annualMinimum: yearTarget.min,
         met: yearTarget.met,
-        totalDueAtYearEnd: yearSimulation.pendingAmount,
       }
     }),
     [landReceipts, inccRates]
