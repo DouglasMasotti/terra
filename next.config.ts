@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
 
+const isGitHubPages = process.env.GITHUB_PAGES === 'true'
+
 const nextConfig: NextConfig = {
-  // Fully client-side app (localStorage, no API routes / server data) — emit a
-  // static site so Vercel serves plain HTML/JS instead of the Next.js adapter.
+  // This dashboard is client-side only, so export it as a static site.
   output: 'export',
+  ...(isGitHubPages ? { basePath: '/terra', assetPrefix: '/terra/' } : {}),
+  trailingSlash: true,
   images: { unoptimized: true },
 };
 
